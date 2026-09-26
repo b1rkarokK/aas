@@ -1,0 +1,14 @@
+requests>=2.31
+PyYAML>=6.0
+PySide6>=6.7,<7
+ruff>=0.9
+pytest>=8.0
+
+# Опционально: нужен только для команд `mcp-tools`/`mcp-ask` в cli.py (доступ к
+# MCP-серверам вроде penpot-mcp-server). Без этого пакета остальной AI Router
+# работает как раньше — mcp_client.py просто сообщит понятную ошибку при попытке
+# использовать MCP-функции.
+mcp>=1.9
+
+# Optional drag-and-drop support is no longer required by the modern GUI.
+# tkinterdnd2 can remain installed in an old environment, but the new GUI uses PySide6.

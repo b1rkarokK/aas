@@ -1,0 +1,51 @@
+gateway:
+  base_url: "https://openrouter.ai/api/v1"
+  api_key_env: "OPENROUTER_API_KEY"
+
+# В GUI есть два понятных профиля: chat и coding.
+# Профиль задаёт правила работы и цепочку моделей, а не сам API-ключ.
+profiles:
+  chat:
+    description: "Обычная переписка: вопросы, объяснения и обсуждение. Файлы проекта не изменяются."
+    system_prompt: "Отвечай точно и понятно. Если вопрос неоднозначен, задай короткие уточняющие вопросы. Если есть несколько разумных вариантов решения, предложи 2–3 варианта с краткими плюсами и минусами. Не выдумывай факты, файлы или результаты проверок."
+    models: ["openrouter/free"]
+  coding:
+    description: "Кодинг: анализ workspace, изменение файлов, проверки и автоматическое исправление ошибок."
+    system_prompt: "Работай как инженер проекта. Сначала анализируй существующую структуру и код, не выдумывай отсутствующие файлы. Делай минимальные безопасные изменения, сохраняй совместимость, учитывай зависимости и после изменений проверяй результат. Если задача неоднозначна, сначала задай вопрос или предложи варианты."
+    models: ["openrouter/free"]
+
+  design:
+    description: "Дизайн/Penpot через MCP: чтение и правка макетов инструментами MCP-сервера (см. mcp_servers ниже)."
+    system_prompt: "Ты работаешь с Penpot через инструменты (MCP tools). Перед изменением файла сначала прочитай его текущую структуру доступными инструментами чтения, не выдумывай shape id и имена файлов. Вноси изменения маленькими проверяемыми шагами и в конце кратко опиши, что именно сделано."
+    models: ["openrouter/free"]
+
+router:
+  retries_per_endpoint: 1
+
+daily_limits:
+  per_model_per_day: 45
+  per_model_per_minute: 18
+
+diagnostics:
+  python:
+    dead_code: ["ruff", "check", ".", "--select", "F401,F841,F811"]
+    lint: ["ruff", "check", "."]
+    test: ["pytest", "-q"]
+  node:
+    dead_code: ["npx", "eslint", "."]
+    lint: ["npx", "eslint", "."]
+    test: ["npm", "test", "--silent"]
+
+# MCP-серверы для профиля "design" (и любых других через router.ask_with_tools()).
+# Работает независимо от gateway/profiles выше — это отдельный опциональный слой
+# инструментов, требует "pip install mcp" (см. requirements.txt).
+mcp_servers:
+  penpot:
+    transport: "http"        # penpot-mcp-server (ancrz) всегда запущен своим Docker-контейнером
+    url: "http://localhost:8787/mcp"
+    headers: {}
+    # Если ваш MCP-сервер требует отдельный bearer-токен на самом себе (не путать
+    # с PENPOT_ACCESS_TOKEN у penpot-mcp-server — тот настраивается в его .env),
+    # раскомментируйте и впишите:
+    # headers:
+    #   Authorization: "Bearer ВАШ_ТОКЕН"
